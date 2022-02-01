@@ -21,7 +21,6 @@ BEGIN
   DELETE FROM categories;
   COMMIT;
   OPEN categories_cur;
-  <<categories_loop>>
   LOOP
     FETCH categories_cur
       INTO categories_rec;
@@ -33,7 +32,7 @@ BEGIN
       (categories_rec.id, categories_rec.title);
     -- пропускаем title2
     IF categories_rec.title = 'title2' THEN
-      dbms_output.put_line('Ошибка при добавлении записи для ' ||
+      dbms_output.put_line('Ошибка при добавлении записи.' ||
                            categories_rec.title);
       CONTINUE;
     END IF;
@@ -42,11 +41,11 @@ BEGIN
       RAISE err_title;
     END IF;
     COMMIT;
-  END LOOP categories_loop;
+  END LOOP;
   CLOSE categories_cur;
 EXCEPTION
   WHEN err_title THEN
-    dbms_output.put_line('Ошибка при добавлении записи для ' ||
+    dbms_output.put_line('Ошибка при добавлении записи.' ||
                          categories_rec.title);
     ROLLBACK;
 END;
