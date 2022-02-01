@@ -16,5 +16,5 @@ BEGIN
   END LOOP;
 EXCEPTION
   WHEN error_cnt THEN
-    dbms_output.put_line('Ошибка в карточке: ' || l_num_kard);
+    dbms_output.put_line('Ошибка в карточке' || l_num_kard);
 END;
