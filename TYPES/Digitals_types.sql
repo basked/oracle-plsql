@@ -6,6 +6,10 @@
   -- Появились в Oracle11, не могут быть NULL  и определяяються изначально 
   simple_float_type  SIMPLE_FLOAT := 123.456;
   simple_double_type SIMPLE_DOUBLE := 123.456;
+  -- ЦЕЛОЧИСЛЕННЫЕ ТИПЫ
+  pls_integer_type PLS_INTEGER;
+  simple_integer_type SIMPLE_INTEGER:=124;
+  
 BEGIN
   num_type := 1234567.8698;
   dbms_output.put_line('NUMBER(9, 2): ' || num_type);
@@ -25,6 +29,14 @@ BEGIN
 
   simple_double_type := 12322245.8226;
   dbms_output.put_line('SIMPLE_DOUBLE: ' || BINARY_FLOAT_MAX_NORMAL);
+  
+  
+   pls_integer_type := 12345.85;
+  dbms_output.put_line('PLS_INTEGER: ' || pls_integer_type);
+
+  simple_integer_type := 4566;
+  dbms_output.put_line('SIMPLE_INTEGER: ' || simple_integer_type);
+   
 END;
 
 
