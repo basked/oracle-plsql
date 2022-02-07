@@ -26,7 +26,7 @@ BEGIN
   INSERT INTO family
     (surname, parnet_names, children_names)
   VALUES
-    ('MISULIA', parents, children);
+    ('MISULIA', parents, child_names_t('Temig','TeMIG'));
   COMMIT;
 
   -- вывод коллекции
