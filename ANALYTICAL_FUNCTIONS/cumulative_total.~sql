@@ -10,3 +10,4 @@ SELECT d.department_name,
   LEFT JOIN employees e
     ON d.department_id = e.department_id
  WHERE e.job_id IS NOT NULL
+   
