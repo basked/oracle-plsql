@@ -80,6 +80,9 @@ CREATE OR REPLACE PACKAGE BODY bas_col IS
     CLOSE employee_cur;
     sf_timer.show_elapsed_time('-------End block bulk collect---------');
   END;
+  
+  
+  
 END bas_col;
 
 /
