@@ -53,7 +53,7 @@ BEGIN
     EXIT WHEN empl_cur%NOTFOUND;
   END LOOP;
   CLOSE empl_cur;
-
+ 
   bas_pkg.line_separ('Обновление данных о сотрудниках и вывод через RETURNING');
   UPDATE employees e
      SET e.salary = e.salary * 10
