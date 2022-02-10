@@ -1,105 +1,107 @@
-﻿CREATE OR REPLACE PACKAGE bas_col IS
-  CURSOR employee_cur IS
-    SELECT * FROM employees;
-  TYPE employee_aat IS TABLE OF employee_cur%ROWTYPE INDEX BY PLS_INTEGER;
-  employee_rec employee_cur%ROWTYPE;
-  employee_c   employee_aat;
-  PROCEDURE init_data;
-  PROCEDURE output_employees;
-  PROCEDURE change_park(p_title         IN auto_park.title%TYPE,
-                        p_auto_park_rec OUT auto_park%ROWTYPE);
-END bas_col;
+﻿CREATE OR REPLACE NONEDITIONABLE PACKAGE bas_pkg IS
+
+  TYPE fio_rt IS RECORD(
+    first_name employees.first_name%TYPE,
+    last_name  employees.last_name%TYPE);
+  TYPE list_fields_t IS TABLE OF VARCHAR2(64);
+  TYPE list_fields_type_t IS TABLE OF VARCHAR2(32);
+  PROCEDURE line_separ(msg IN VARCHAR2, length_str IN NUMBER := 100);
+  FUNCTION get_salary(p_employee_id employees.employee_id%TYPE)
+    RETURN employees.salary%TYPE;
+  FUNCTION get_fio(p_employee_id employees.employee_id%TYPE) RETURN VARCHAR2;
+  PROCEDURE create_table(p_tab_name IN VARCHAR2,
+                         p_fields   IN list_fields_t,
+                         p_types    IN list_fields_type_t);
+  PROCEDURE dummy(p_tab_name IN VARCHAR2, p_id_to NUMBER);
+END bas_pkg;
 /
-CREATE OR REPLACE PACKAGE BODY bas_col IS
-  PROCEDURE init_data IS
+CREATE OR REPLACE NONEDITIONABLE PACKAGE BODY bas_pkg IS
+  PROCEDURE line_separ(msg IN VARCHAR2, length_str IN NUMBER := 100) IS
+    l_cnt NUMBER;
   BEGIN
-    dbms_output.put_line('Data was initialize!');
-  END;
-  --
-  PROCEDURE change_park(p_title IN auto_park.title%TYPE,
-                        p_auto_park_rec OUT auto_park%ROWTYPE) IS
-    collect_c auto_park.names_auto%TYPE;
+    l_cnt := (length_str - LENGTH(msg)) / 2;
+    dbms_output.put_line(LPAD('=', l_cnt, '=') || msg ||
+                         RPAD('=', l_cnt, '='));
+  END line_separ;
+
+  FUNCTION get_fio(p_employee_id employees.employee_id%TYPE) RETURN VARCHAR2 IS
+    fio_rec employees%ROWTYPE;
   BEGIN
-    BEGIN
-      SELECT names_auto
-        INTO collect_c
-        FROM auto_park
-       WHERE title = p_title;
-      collect_c.trim(2);
-      collect_c.extend;
-      collect_c(collect_c.last) := 'new item collect11';
-      collect_c.extend;
-      collect_c(collect_c.last) := 'new item collect21';
-    EXCEPTION
-      WHEN OTHERS THEN
-        dbms_output.put_line('LIMIT COLLECTION = ' || collect_c.limit);
-    END;
-    UPDATE auto_park
-       SET title = 'AUTOPARK', names_auto = collect_c
-     WHERE title = p_title
-    RETURNING title, names_auto INTO p_auto_park_rec;
+    SELECT e.first_name, e.last_name
+      INTO fio_rec.first_name, fio_rec.last_name
+      FROM employees e
+     WHERE e.employee_id = p_employee_id;
+    RETURN fio_rec.first_name || ' ' || fio_rec.last_name;
   END;
 
-  -- 
-  PROCEDURE output_employees IS
+  FUNCTION get_fio2(p_employee_id employees.employee_id%TYPE) RETURN fio_rt IS
+    fio_rec fio_rt;
   BEGIN
-    -- WORK WHITH RECORDS
-    sf_timer.start_timer;
-    OPEN employee_cur;
-    LOOP
-      FETCH employee_cur
-        INTO employee_rec;
-      dbms_output.put_line('First_name:' || employee_rec.first_name);
-      EXIT WHEN employee_cur%NOTFOUND;
-    END LOOP;
-    CLOSE employee_cur;
-    sf_timer.show_elapsed_time('-------End block records---------');
-    -- WORK WHITH ASSOCIATIVE COLLECTIONS
-    sf_timer.start_timer;
-    OPEN employee_cur;
-    LOOP
-      FETCH employee_cur
-        INTO employee_rec;
-      employee_c(employee_cur%ROWCOUNT) := employee_rec;
-      dbms_output.put_line('First_name:' || employee_c(employee_cur%ROWCOUNT).first_name);
-      EXIT WHEN employee_cur%NOTFOUND;
-    END LOOP;
-    CLOSE employee_cur;
-    sf_timer.show_elapsed_time('-------End block collections---------');
-    -- WORK WHITH BULK COLLECTIONS
-    sf_timer.start_timer;
-    OPEN employee_cur;
-    LOOP
-      FETCH employee_cur BULK COLLECT
-        INTO employee_c LIMIT 20;
-      FOR l_row IN employee_c.first .. employee_c.last LOOP
-        dbms_output.put_line('First_name:' || employee_c(l_row).first_name);
-      END LOOP;
-      EXIT WHEN employee_cur%NOTFOUND;
-    END LOOP;
-    CLOSE employee_cur;
-    sf_timer.show_elapsed_time('-------End block bulk collect---------');
+    SELECT e.first_name, e.last_name
+      INTO fio_rec.first_name, fio_rec.last_name
+      FROM employees e
+     WHERE e.employee_id = p_employee_id;
+    RETURN fio_rec;
   END;
-  
-  
-  
-END bas_col;
 
-/
-BEGIN
-  -- test procedure bas_col.output_employees;
+  FUNCTION get_fio3(fio_rec fio_rt) RETURN VARCHAR2 IS
   BEGIN
-    bas_col.output_employees;
+    RETURN fio_rec.last_name || ' ' || fio_rec.first_name;
   END;
-  -- test procedure bas_col.change_park
-  DECLARE
-    park_rec auto_park%ROWTYPE;
+
+  FUNCTION get_salary(p_employee_id employees.employee_id%TYPE)
+    RETURN employees.salary%TYPE IS
+    fio_rec employees%ROWTYPE;
   BEGIN
-    change_park('AUTOPARK', park_rec);
+    SELECT e.salary
+      INTO fio_rec.salary
+      FROM employees e
+     WHERE e.employee_id = p_employee_id;
+    RETURN fio_rec.salary;
+  END;
+  -- Dynamic sql for create table
+  PROCEDURE create_table(p_tab_name IN VARCHAR2,
+                         p_fields   IN list_fields_t,
+                         p_types    IN list_fields_type_t) IS
+    e_dif_size        EXCEPTION;
+    l_sql_create_stmt VARCHAR(1000);
+  BEGIN
+    IF p_fields.count <> p_types.count THEN
+      RAISE e_dif_size;
+    END IF;
+    l_sql_create_stmt := 'CREATE TABLE ' || p_tab_name||'(';
+    FOR indx IN p_fields.first .. p_fields.last LOOP
+     l_sql_create_stmt:=l_sql_create_stmt||' '||p_fields(indx)||' '|| p_types(indx)||',' ; 
+     END LOOP;
+     l_sql_create_stmt:= l_sql_create_stmt||'  CONSTRAINTS ' || p_tab_name || '_pk PRIMARY KEY (ID))';
+    EXECUTE IMMEDIATE 'drop table ' || p_tab_name;
+    EXECUTE IMMEDIATE l_sql_create_stmt;
+    dbms_output.put_line('Table ' || p_tab_name || ' was created!');
+  EXCEPTION
+    WHEN e_dif_size THEN
+      dbms_output.put_line('Кол-во полей должно соответствовать кол-ву типов.');
+    WHEN OTHERS THEN
+      IF SQLCODE = -942 THEN
+        EXECUTE IMMEDIATE l_sql_create_stmt;
+        dbms_output.put_line('Table ' || p_tab_name || ' was created!');
+      END IF;
+  END;
+
+  -- dummy data
+  PROCEDURE dummy(p_tab_name IN VARCHAR2, p_id_to NUMBER) IS
+    l_sql_insert_stmt VARCHAR(1000);
+  BEGIN
+    l_sql_insert_stmt := 'INSERT INTO ' || p_tab_name ||
+                         ' SELECT LEVEL AS ID FROM dual CONNECT BY LEVEL BETWEEN 1 AND :id_to ';
+  
+    EXECUTE IMMEDIATE l_sql_insert_stmt
+      USING p_id_to;
     COMMIT;
-    dbms_output.put_line(park_rec.title);
-    FOR i IN park_rec.names_auto.first .. park_rec.names_auto.last LOOP
-      dbms_output.put_line(park_rec.names_auto(i));
-    END LOOP;
-  END; 
-END;
+    dbms_output.put_line('Insert data to table ' || p_tab_name);
+  EXCEPTION
+    WHEN OTHERS THEN
+      dbms_output.put_line('Error code: ' || SQLCODE || ' ' || SQLERRM ||
+                           ' WHEN INSERT DATA INTO ' || p_tab_name);
+      ROLLBACK;
+  END;
+END bas_pkg;
