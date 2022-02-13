@@ -24,12 +24,17 @@
   BEGIN
     FORALL l_row IN ba_nt.first .. ba_nt.last
       INSERT INTO blok_table_a VALUES (ba_nt(l_row).id, ba_nt(l_row).name);
+    IF p_auto_commit THEN
+      r_cnt := SQL%ROWCOUNT;
+      COMMIT;
+    END IF;
   EXCEPTION
     WHEN OTHERS THEN
       IF SQLCODE = -1 THEN
         ROLLBACK;
         dbms_output.put_line('Попытка вставить дубликат записи.');
         dbms_output.put_line(dbms_utility.format_error_backtrace);
+        RAISE;
       END IF;
   END;
   -- обновление данных из коллекции
@@ -41,12 +46,17 @@
       UPDATE blok_table_a
          SET NAME = ba_nt(l_row).name
        WHERE ID = ba_nt(l_row).id;
+    IF p_auto_commit THEN
+      r_cnt := SQL%ROWCOUNT;
+      COMMIT;
+    END IF;
   EXCEPTION
     WHEN OTHERS THEN
       IF SQLCODE = -1 THEN
         ROLLBACK;
         dbms_output.put_line('Ошибка при обновлении записи.');
         dbms_output.put_line(dbms_utility.format_error_backtrace);
+        RAISE;
       END IF;
   END;
   -- удаление данных из коллекции
@@ -56,15 +66,19 @@
   BEGIN
     FORALL l_row IN p_ids_nt.first .. p_ids_nt.last
       DELETE FROM blok_table_a WHERE ID = p_ids_nt(l_row);
+  
     IF p_auto_commit THEN
+      r_cnt := SQL%ROWCOUNT;
       COMMIT;
     END IF;
   EXCEPTION
     WHEN OTHERS THEN
+      dbms_output.put_line(SQLERRM);
       IF SQLCODE = -1 THEN
-        ROLLBACK;
         dbms_output.put_line('Ошибка при удалении записи.');
         dbms_output.put_line(dbms_utility.format_error_backtrace);
+        RAISE;
+        ROLLBACK;
       END IF;
   END;
 
@@ -86,28 +100,33 @@
   END;
 
 BEGIN
-  ids_nt := ids_ntt(1, 2, 4, 5, 6, 7, 8, 9);
+  SET TRANSACTION ISOLATION LEVEL SERIALIZABLE NAME 'first transaction';
+  dbms_output.put_line('Таблица до изменений: ' || r_cnt);
+  fetch_data;
+
+  ids_nt := ids_ntt(1, 2, 3, 4);
   delete_data(ids_nt, r_cnt, TRUE);
   dbms_output.put_line('Удалено записей: ' || r_cnt);
   fetch_data;
-  /*
-  
-  
-  
-   ba_nt := ba_ntt(ba_rt_(8, 'name8'),
-                   ba_rt_(9, 'name9'),
-                   ba_rt_(15, 'name15'),
-                   ba_rt_(16, 'name16'));
-   --insert_data(ba_nt, r_cnt);
-   COMMIT;
-   ba_nt := NULL;
-   ba_nt := ba_ntt(ba_rt_(8, 'NAME8'),
-                   ba_rt_(9, 'NAME9'),
-                   ba_rt_(15, 'NAME15'),
-                   ba_rt_(16, 'NAME16'));
-  -- update_data(ba_nt, r_cnt);
-  
-  
-   COMMIT;
-   /**/
+  ba_nt := ba_ntt(ba_rt_(1, 'name1'),
+                  ba_rt_(2, 'name2'),
+                  ba_rt_(3, 'name3'),
+                  ba_rt_(4, 'name4'));
+  insert_data(ba_nt, r_cnt);
+  dbms_output.put_line('Вставлено записей: ' || r_cnt);
+  fetch_data;
+  ba_nt := NULL;
+  ba_nt := ba_ntt(ba_rt_(1, 'NAME1'),
+                  ba_rt_(2, 'NAME2'),
+                  ba_rt_(3, 'NAME3'),
+                  ba_rt_(4, 'NAME4'));
+  update_data(ba_nt, r_cnt);
+  dbms_output.put_line('Обнавлено записей: ' || r_cnt);
+  fetch_data;
+  COMMIT;
+EXCEPTION
+  WHEN OTHERS THEN
+    dbms_output.put_line(SQLERRM || ' ' || SQLCODE);
+    dbms_output.put_line(dbms_utility.format_error_backtrace);
+    ROLLBACK;
 END;
