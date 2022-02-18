@@ -8,7 +8,7 @@
       FROM employees e
      WHERE e.job_id = p_job_id;
   PROCEDURE init_sal(p_job_id employees.job_id%TYPE);
-END bas_tem;
+END bas_tem; 
 /
 CREATE OR REPLACE NONEDITIONABLE PACKAGE BODY bas_tem IS
   PROCEDURE init_sal(p_job_id employees.job_id%TYPE) IS
