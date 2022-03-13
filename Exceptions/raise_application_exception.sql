@@ -5,7 +5,7 @@
   PRAGMA EXCEPTION_INIT(bas_not_data_err, 100);
 
   bas_null_val_err EXCEPTION;
-  bas_null_val_code CONSTANT NUMBER := -19999;--6502;
+  bas_null_val_code CONSTANT NUMBER := -19999; --6502;
   bas_null_val_msg  CONSTANT VARCHAR2(500) := 'Значение переменной не может быть равно NULL';
   PRAGMA EXCEPTION_INIT(bas_null_val_err, -6502);
 
