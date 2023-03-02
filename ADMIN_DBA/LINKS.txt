@@ -3,3 +3,8 @@ https://habr.com/ru/company/custis/blog/502030/
 https://oracle-base.com/articles/11g/fine-grained-access-to-network-services-11gr1
 https://oracle-base.com/articles/misc/utl_http-and-ssl
 https://docs.oracle.com/cd/E11882_01/appdev.112/e40758/u_http.htm#ARPLS71108
+
+!!!! НАСТРОЙКИ ПОДКЛЮЧЕНИЯ
+https://oracle-patches.com/db/sql/pl-sql-rabota-s-dannymi-v-internete-na-primere-oracle-utl_http
+!!!! настройки WALLET
+https://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/
