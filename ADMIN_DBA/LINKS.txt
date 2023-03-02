@@ -1,0 +1,5 @@
+https://www.itworkroom.com/oracle-wallet-orapki/
+https://habr.com/ru/company/custis/blog/502030/
+https://oracle-base.com/articles/11g/fine-grained-access-to-network-services-11gr1
+https://oracle-base.com/articles/misc/utl_http-and-ssl
+https://docs.oracle.com/cd/E11882_01/appdev.112/e40758/u_http.htm#ARPLS71108
